@@ -20,7 +20,7 @@ class tmos:
         self.session = requests.Session()
         self.legacy = legacy
         self.session_timeout = 15
-        self.session.headers.update({"Content-Type": "application/json"})
+        #self.session.headers.update({"Content-Type": "application/json"})
         # Authentication mode
         self.shared_auth_uri = {'login' : '/mgmt/shared/authn/login', 'token' : '/mgmt/shared/authz/tokens/'}
         if legacy:
@@ -69,6 +69,11 @@ class tmos:
     # post FUNCTION
     #-----------------------------------------------------------------------
     def post(self, uri, data, headers = None, format = 'json'):
+        if format == 'json':
+            if headers:
+                headers['Content-Type'] = 'application/json'
+            else:
+                headers = {'Content-Type': 'application/json'}
         res = self.session.post('https://' + self.host + uri, data=json.dumps(data), headers = headers, verify=False, timeout= self.session_timeout)
         if res.status_code >= 400:
             raise ValueError("wrong status code : %s" % res.status_code )
