@@ -139,46 +139,38 @@ class tmos:
             print("Transfer interrupted.")
             fileobj.close()
         
-    def _upload(self,uri, filepath, chunk_size = 512 * 1024):
-        # Initialize variables
-  
+    def upload(self,uri, filepath, chunk_size = 512 * 1024):
+        # Initialize variables  
         start = 0
-        end = 0
         size = os.path.getsize(filepath)
-        current_bytes = 0
-        headers = {'Content-Type': 'application/octet-stream'}
         filename = os.path.basename(filepath)
+        headers = {'Content-Type': 'application/octet-stream'}
 
         # Extend token validity
         if size > 800000000:
             self.update_session_timeout(3600)
         # Create file buffer
         fileobj = open(filepath, 'rb')
-        while True:
-            # Slice source file
-            file_slice = fileobj.read(chunk_size)
-            if not file_slice:
-                print("Successful Transfer.")
-                break
-            # Check file boundaries
-            current_bytes = len(file_slice)
-            if current_bytes < chunk_size:
-                end = size
-            else:
-                end = start + current_bytes
-            # Set new content range header
-            content_range = "%s-%s/%s" % (start, end - 1, size)
-            headers['Content-Range'] = content_range
-            # Lauch REST request
-            try:
-                response = requests.post(uri, data=file_slice, headers=headers, verify=False, timeout=10)
-                if response.status_code != 200:
-                    # Response status 400 (Bad Request)
-                    print("Bad Request(400). Check filepath, credentials, ...")
-                    print(response.headers)
+        try:
+            while True:
+                # Slice source file
+                file_slice = fileobj.read(chunk_size)
+                if not file_slice:
+                    print("Successful Transfer.")
                     break
-            except requests.exceptions.ConnectTimeout:
-                print("Connection Timeout.")
-                break
-            # Shift to next slice
-            start += current_bytes
+                # Check file boundaries
+                current_bytes = len(file_slice)
+                end = min ([start + current_bytes, size]) -1
+
+                # Set new content range header
+                headers['Content-Range'] = "%s-%s/%s" % (start, end, size)
+                print (headers['Content-Range'])
+                # Lauch REST request
+                res = self.session.post('https://' + self.host + uri + filename, data=file_slice, headers=headers, verify=False, timeout=self.session_timeout)
+                if res.status_code != 200:
+                    raise ValueError("wrong status code : %s" % res.status_code )
+                # Shift to next slice
+                start = end + 1
+        except KeyboardInterrupt:
+            print("Transfer interrupted.")
+            fileobj.close()
