@@ -86,6 +86,11 @@ class tmos:
     # patch FUNCTION
     #-----------------------------------------------------------------------
     def patch(self, uri, data, headers = None, format = 'json'):
+        if format == 'json':
+            if headers:
+                headers['Content-Type'] = 'application/json'
+            else:
+                headers = {'Content-Type': 'application/json'}
         res = self.session.patch('https://' + self.host + uri, data=json.dumps(data), headers = headers, verify=False, timeout= self.session_timeout)
         if res.status_code >= 400:
             raise ValueError("wrong status code : %s" % res.status_code )
@@ -94,6 +99,9 @@ class tmos:
         else:
             return res.content
 
+    #-----------------------------------------------------------------------
+    # download FUNCTION
+    #-----------------------------------------------------------------------
     def download(self,uri, filepath, chunk_size = 512 * 1024, resume = False):
         # Initialize variables
         if resume:
@@ -147,7 +155,10 @@ class tmos:
         except KeyboardInterrupt:
             print("Transfer interrupted.")
             fileobj.close()
-        
+
+    #-----------------------------------------------------------------------
+    # upload FUNCTION
+    #-----------------------------------------------------------------------
     def upload(self,uri, filepath, chunk_size = 512 * 1024):
         # Initialize variables  
         start = 0
