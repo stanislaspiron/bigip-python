@@ -47,7 +47,11 @@ class tmos:
     # update_session_timeout FUNCTION
     #-----------------------------------------------------------------------
     def update_session_timeout(self, timeout):
-        self.patch(self.shared_auth_uri['token'] + self.token, data = {"timeout" : timeout })
+        if self.legacy:
+            print("Legacy Mode... No Session timeout")
+        else:
+            self.patch(self.shared_auth_uri['token'] + self.token, data = {"timeout" : timeout })
+            print("Session timeout updated succesully")
 
     #-----------------------------------------------------------------------
     # get FUNCTION
