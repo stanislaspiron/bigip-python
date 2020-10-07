@@ -1,5 +1,9 @@
 import requests, json, logging, os, time
-from urllib.parse import urlparse
+
+try:
+    from urllib.parse import urlparse
+except:
+    print('module urlparse import error')
 
 # disable warning messages for untrusted TLS certificate
 try:
